@@ -1,90 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOrders, getActiveOrders } from '../services/api';
-import type { Order } from '../services/service.types';
+import { getOrders, logout } from '../services/api';
 
-interface OrderListProps {
-  token: string | null;
-}
-
-const OrderList: React.FC<OrderListProps> = ({ token }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [activeOrders, setActiveOrders] = useState<Order[]>([]);
-  const [error, setError] = useState<string | null>(null);
+const Orders = () => {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<any[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     const fetchOrders = async () => {
       try {
-        const [allOrders, active] = await Promise.all([
-          getOrders(token),
-          getActiveOrders(token),
-        ]);
-        setOrders(allOrders);
-        setActiveOrders(active);
+        const data = await getOrders();
+        setOrders(data);
       } catch (err) {
-        setError((err as Error).message);
-        if ((err as Error).message.includes('401')) {
-          localStorage.removeItem('token');
-          navigate('/login');
-        }
+        setError('Failed to fetch orders');
+        logout();
+        navigate('/login');
       }
     };
-
     fetchOrders();
-  }, [token, navigate]);
-
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
+  }, [navigate]);
 
   return (
-    <div className="order-list">
-      <h2>Your Orders</h2>
-      <h3>Active Orders</h3>
-      {activeOrders.length === 0 ? (
-        <p>No active orders</p>
-      ) : (
-        <ul>
-          {activeOrders.map(order => (
-            <li key={order.id}>
-              <strong>Order #{order.id}</strong> - Status: {order.status} - Total: ${order.totalPrice.toFixed(2)}
-              <ul>
-                {order.drinks.map(drink => (
-                  <li key={drink.id}>{drink.type} ({drink.size}) - ${drink.price.toFixed(2)}</li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
-      <h3>All Orders</h3>
-      {orders.length === 0 ? (
-        <p>No orders found</p>
-      ) : (
-        <ul>
-          {orders.map(order => (
-            <li key={order.id}>
-              <strong>Order #{order.id}</strong> - Status: {order.status} - Total: ${order.totalPrice.toFixed(2)}
-              <ul>
-                {order.drinks.map(drink => (
-                  <li key={drink.id}>{drink.type} ({drink.size}) - ${drink.price.toFixed(2)}</li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p>
-        <a href="/create-order">Create New Order</a> | <a href="/">Back to Home</a>
-      </p>
+    <div>
+      <h2>Orders</h2>
+      <button onClick={() => navigate('/create-order')}>Create Order</button>
+      <button onClick={() => { logout(); navigate('/login'); }}>Logout</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <ul>
+        {orders.map((order) => (
+          <li key={order.id}>{order.id} - {order.status}</li>
+        ))}
+      </ul>
     </div>
   );
 };
 
-export default OrderList;
+export default Orders;
