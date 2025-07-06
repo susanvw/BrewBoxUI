@@ -1,74 +1,173 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../services/api';
+import {
+  isAuthenticated,
+  login,
+  verifyAppleMfa,
+  verifyGoogleMfa
+} from '../services/api';
+import type { LoginRequest, MfaRequest } from '../services/auth.type';
+import { toast } from 'react-toastify';
 
 const Login = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mfaType, setMfaType] = useState<'None' | 'Google' | 'Apple'>('None');
   const [mfaToken, setMfaToken] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showMfa, setShowMfa] = useState(false);
+  const navigate = useNavigate();
+  // Listen for foreground FCM messages
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (error) {
+      toast.info(error, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'dark'
+      });
+    }
+  }, [error]);
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await login({ email, password, mfaType, mfaToken });
+      const request: LoginRequest = { email, password };
+      const response = await login(request);
+
+      console.log('login api call', response);
+
+      if (!response.succeeded) {
+        setError(response.message ?? 'Could not authenticate user.');
+      }
+
+      if (isAuthenticated()) {
+        navigate('/');
+      } else if (response.requiresMfa) {
+        setShowMfa(true);
+      }
+    } catch (err: any) {
+      setError(err.message ?? 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (!mfaToken) {
+      setError('Please enter an MFA token');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const request: MfaRequest = { token: mfaToken };
+      if (mfaType === 'Google') {
+        await verifyGoogleMfa(request);
+      } else if (mfaType === 'Apple') {
+        await verifyAppleMfa(request);
+      }
       navigate('/');
-    } catch (err) {
-      setError('Login failed. Please check your credentials or MFA token.');
+    } catch (err: any) {
+      setError(err.message || 'MFA verification failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>MFA Type:</label>
-          <select
-            value={mfaType}
-            onChange={(e) => setMfaType(e.target.value as 'None' | 'Google' | 'Apple')}
-          >
-            <option value="None">None</option>
-            <option value="Google">Google</option>
-            <option value="Apple">Apple</option>
-          </select>
-        </div>
-        {mfaType !== 'None' && (
+    <div className='register-container'>
+      <h2>Login to BrewBox</h2>
+      {error && <div className='error'>{error}</div>}
+      {!showMfa ? (
+        <form onSubmit={handleLoginSubmit}>
           <div>
-            <label>MFA Token:</label>
+            <label htmlFor='email'>Email</label>
             <input
-              type="text"
-              value={mfaToken}
-              onChange={(e) => setMfaToken(e.target.value)}
+              id='email'
+              type='email'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder='Enter your email'
+              required
             />
           </div>
-        )}
-        <button type="submit">Login</button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <p>
-        Don't have an account? <a href="/register">Register</a>
-      </p>
+          <div>
+            <label htmlFor='password'>Password</label>
+            <input
+              id='password'
+              type='password'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder='Enter your password'
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor='mfaType'>MFA Type</label>
+            <select
+              id='mfaType'
+              value={mfaType}
+              onChange={(e) =>
+                setMfaType(e.target.value as 'None' | 'Google' | 'Apple')
+              }
+            >
+              <option value='None'>None</option>
+              <option value='Google'>Google</option>
+              <option value='Apple'>Apple</option>
+            </select>
+          </div>
+          <button type='submit' disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleMfaSubmit}>
+          <div>
+            <label htmlFor='mfaToken'>MFA Token</label>
+            <input
+              id='mfaToken'
+              type='text'
+              value={mfaToken}
+              onChange={(e) => setMfaToken(e.target.value)}
+              placeholder={`Enter ${mfaType} token`}
+              required
+            />
+          </div>
+          <button type='submit' disabled={loading}>
+            {loading ? 'Verifying...' : 'Verify MFA'}
+          </button>
+        </form>
+      )}
+      <div className='link-container'>
+        <p>
+          Don't have an account? <a href='/register'>Register</a>
+        </p>
+      </div>
     </div>
   );
 };

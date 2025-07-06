@@ -1,39 +1,292 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOrders, logout } from '../services/api';
+import {
+  getOrders,
+  getActiveOrders,
+  claimOrder,
+  updateOrderStatus,
+  updatePaymentStatus,
+  logout,
+  registerFcmToken
+} from '../services/api';
+import { requestNotificationPermission, onMessageListener } from '../firebase';
+import type { IOrder } from '../services/order.type';
+import { toast } from 'react-toastify';
 
-const Orders = () => {
+const OrderList = () => {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<any[]>([]);
-  const [error, setError] = useState('');
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isBarista, setIsBarista] = useState(false);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const data = await getOrders();
-        setOrders(data);
-      } catch (err) {
-        setError('Failed to fetch orders');
-        logout();
-        navigate('/login');
+    // Request notification permission and register FCM token
+    const initializeNotifications = async () => {
+      const token = await requestNotificationPermission();
+      if (token) {
+        try {
+          await registerFcmToken(token);
+        } catch (err: any) {
+          console.error('Failed to register FCM token:', err);
+        }
       }
     };
+    initializeNotifications();
+
+// Listen for foreground FCM messages
+    onMessageListener().then((payload: any) => {
+      const { notification } = payload;
+      toast.info(`${notification.title}: ${notification.body}`, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'dark',
+      });
+    }).catch((err) => console.error('Foreground notification error:', err));
+
+    // Fetch orders and set up polling
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const userRole = localStorage.getItem('userRole') || 'Customer';
+        setIsBarista(userRole === 'Barista');
+        const newOrders = isBarista
+          ? await getActiveOrders()
+          : await getOrders();
+
+        // Check for new unclaimed orders (baristas) or status changes
+        setOrders((prevOrders) => {
+          if (isBarista) {
+            const newUnclaimed = newOrders.filter(
+              (newOrder) =>
+                newOrder.status === 'New' &&
+                !prevOrders.some((prev) => prev.id === newOrder.id)
+            );
+            if (newUnclaimed.length > 0) {
+              newUnclaimed.forEach((order) => {
+                new Notification('New Unclaimed Order', {
+                  body: `Order ID: ${order.id} is available for claiming.`,
+                  icon: '/icon.png'
+                });
+              });
+            }
+          }
+
+          // Check for status changes
+          newOrders.forEach((newOrder) => {
+            const prevOrder = prevOrders.find(
+              (prev) => prev.id === newOrder.id
+            );
+            if (prevOrder && prevOrder.status !== newOrder.status) {
+              new Notification('Order Status Updated', {
+                body: `Order ID: ${newOrder.id} is now ${newOrder.status}.`,
+                icon: '/icon.png'
+              });
+            }
+          });
+
+          return newOrders;
+        });
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch orders');
+        logout();
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchOrders();
-  }, [navigate]);
+    const interval = setInterval(fetchOrders, 180000); // Poll every 3 minutes
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [navigate, isBarista]);
+
+  const handleClaimOrder = async (orderId: string) => {
+    try {
+      await claimOrder(orderId);
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, status: 'Claimed' } : order
+        )
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to claim order');
+    }
+  };
+
+  const handleUpdateStatus = async (
+    orderId: string,
+    status: IOrder['status']
+  ) => {
+    try {
+      await updateOrderStatus(orderId, { status });
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, status } : order
+        )
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to update order status');
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, { status: 'Completed' });
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, status: 'Completed' } : order
+        )
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to cancel order');
+    }
+  };
+
+  const handleMarkPaid = async (orderId: string) => {
+    try {
+      await updatePaymentStatus(orderId, { paid: true });
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, paid: true } : order
+        )
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to mark order as paid');
+    }
+  };
 
   return (
-    <div>
+    <div className='register-container'>
       <h2>Orders</h2>
-      <button onClick={() => navigate('/create-order')}>Create Order</button>
-      <button onClick={() => { logout(); navigate('/login'); }}>Logout</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
-        {orders.map((order) => (
-          <li key={order.id}>{order.id} - {order.status}</li>
-        ))}
-      </ul>
+      {error && <div className='error'>{error}</div>}
+      {loading ? (
+        <p className='text-center text-vikinger-light'>Loading orders...</p>
+      ) : orders.length === 0 ? (
+        <p className='text-center text-vikinger-light'>No orders found.</p>
+      ) : (
+        <ul className='order-list'>
+          {orders.map((order) => (
+            <li key={order.id} className='order-list-item'>
+              <div className='order-details'>
+                <p>
+                  <strong>Order ID:</strong> {order.id}
+                </p>
+                <p>
+                  <strong>Status:</strong> {order.status}
+                </p>
+                <p>
+                  <strong>Pickup Time:</strong>{' '}
+                  {new Date(order.pickupTime).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Total Price:</strong> ${order.totalPrice.toFixed(2)}
+                </p>
+                {order.tip && (
+                  <p>
+                    <strong>Tip:</strong> ${order.tip.toFixed(2)}
+                  </p>
+                )}
+                <p>
+                  <strong>Paid:</strong> {order.paid ? 'Yes' : 'No'}
+                </p>
+                <p>
+                  <strong>Customer:</strong> {order.createdById || 'N/A'}
+                </p>
+                {order.baristaId && (
+                  <p>
+                    <strong>Barista:</strong> {order.baristaId}
+                  </p>
+                )}
+                <p>
+                  <strong>Drinks:</strong>
+                </p>
+                <ul>
+                  {order.drinks.map((drink) => (
+                    <li key={drink.id}>
+                      {drink.type} ({drink.size}) - ${drink.price.toFixed(2)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className='order-actions'>
+                {isBarista && order.status === 'New' && (
+                  <>
+                    <button onClick={() => handleClaimOrder(order.id)}>
+                      Claim
+                    </button>
+                    <button onClick={() => handleCancelOrder(order.id)}>
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {isBarista && order.status === 'Claimed' && (
+                  <>
+                    <button
+                      onClick={() => handleUpdateStatus(order.id, 'InProgress')}
+                    >
+                      In Progress
+                    </button>
+                    <button onClick={() => handleCancelOrder(order.id)}>
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {isBarista && order.status === 'InProgress' && (
+                  <>
+                    <button
+                      onClick={() => handleUpdateStatus(order.id, 'Ready')}
+                    >
+                      Ready for Collection
+                    </button>
+                    <button onClick={() => handleCancelOrder(order.id)}>
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {isBarista && !order.paid && (
+                  <button onClick={() => handleMarkPaid(order.id)}>
+                    Mark Paid
+                  </button>
+                )}
+                {!isBarista && order.status === 'Ready' && (
+                  <button
+                    onClick={() => handleUpdateStatus(order.id, 'Completed')}
+                  >
+                    Mark Collected
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className='link-container'>
+        <button
+          onClick={() => navigate('/create-order')}
+          className='create-order-button'
+        >
+          Create Order
+        </button>
+        <button
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+          className='logout-button'
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Orders;
+export default OrderList;
+

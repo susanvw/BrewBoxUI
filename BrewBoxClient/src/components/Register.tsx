@@ -1,80 +1,90 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { register } from '../services/api';
+import type { IRegisterRequest } from '../services/account.type';
 
-interface RegisterProps {
-  onRegister: (email: string, password: string, mfaType: 'google' | 'apple' | null, mfaToken: string) => Promise<void>;
-  error: string | null;
-}
-
-const Register: React.FC<RegisterProps> = ({ onRegister, error }) => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [mfaType, setMfaType] = useState<'google' | 'apple' | null>(null);
-  const [mfaToken, setMfaToken] = useState<string>('');
+const Register = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'Customer' | 'Barista'>('Customer');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await onRegister(email, password, mfaType, mfaToken);
+      const request: IRegisterRequest = { email, password, role };
+      await register(request);
       navigate('/login');
-    } catch (err) {
-      // Error handled via prop
+    } catch (err: any) {
+      setError(err.message ?? 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
+    <div className="register-container">
+      <h2>Register for BrewBox</h2>
       {error && <div className="error">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Email:</label>
+          <label htmlFor="email">Email</label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
             required
           />
         </div>
         <div>
-          <label>Password:</label>
+          <label htmlFor="password">Password</label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
             required
           />
         </div>
         <div>
-          <label>MFA Provider:</label>
+          <label htmlFor="role">Role</label>
           <select
-            value={mfaType || ''}
-            onChange={(e) => setMfaType(e.target.value as 'google' | 'apple' | null)}
+            id="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'Customer' | 'Barista')}
           >
-            <option value="">None</option>
-            <option value="google">Google</option>
-            <option value="apple">Apple</option>
+            <option value="Customer">Customer</option>
+            <option value="Barista">Barista</option>
           </select>
         </div>
-        {mfaType && (
-          <div>
-            <label>MFA Token:</label>
-            <input
-              type="text"
-              value={mfaToken}
-              onChange={(e) => setMfaToken(e.target.value)}
-              placeholder={mfaType === 'apple' ? 'Enter mock_apple_<email>' : 'Enter Google token'}
-              required
-            />
-          </div>
-        )}
-        <button type="submit">Register</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Registering...' : 'Register'}
+        </button>
       </form>
-      <p>
-        Already have an account? <a href="/login">Log in</a>
-      </p>
-      <p><a href="/">Back to Home</a></p>
+      <div className="link-container">
+        <p>
+          Already have an account? <a href="/login">Log in</a>
+        </p>
+      </div>
     </div>
   );
 };
