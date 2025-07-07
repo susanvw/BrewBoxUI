@@ -1,11 +1,14 @@
 /**
- * Represents the possible roles a user can have within the system.
- * 
- * - `'Customer'`: A user who interacts with the service as a customer.
- * - `'Barista'`: A user who operates as a barista within the service.
+ * Represents the possible user roles within the application.
+ *
+ * @enum {string}
+ * @property {string} Customer - Represents a customer user.
+ * @property {string} Barista - Represents a barista user.
  */
-export type ERole = 'Customer' | 'Barista';
-
+export enum ERole {
+  Customer = 'Customer',
+  Barista = 'Barista'
+}
 
 /**
  * Represents the data required to register a new user account.
@@ -17,5 +20,18 @@ export type ERole = 'Customer' | 'Barista';
 export interface IRegisterRequest {
   email: string;
   password: string;
-  role: ERole
+  role: ERole;
+}
+
+/**
+ * Represents the response returned after a user registration attempt.
+ *
+ * @property result - An optional string containing additional result information, or null if not applicable.
+ * @property success - Indicates whether the registration was successful.
+ * @property errors - An optional array of error messages, or null if there were no errors.
+ */
+export interface IRegisterResponse {
+  result?: string | null;
+  success: boolean;
+  errors?: string[] | null;
 }

@@ -55,15 +55,13 @@ const Login = () => {
       const request: LoginRequest = { email, password };
       const response = await login(request);
 
-      console.log('login api call', response);
-
-      if (!response.succeeded) {
-        setError(response.message ?? 'Could not authenticate user.');
+      if (!response.success || !response.result) {
+        setError(response.errors?.join(',') ?? 'Could not authenticate user.');
       }
 
       if (isAuthenticated()) {
         navigate('/');
-      } else if (response.requiresMfa) {
+      } else if (response.result?.requiresMfa) {
         setShowMfa(true);
       }
     } catch (err: any) {
@@ -93,7 +91,7 @@ const Login = () => {
       }
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'MFA verification failed.');
+      setError(err.message ?? 'MFA verification failed.');
     } finally {
       setLoading(false);
     }

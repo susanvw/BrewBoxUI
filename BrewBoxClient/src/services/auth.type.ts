@@ -18,18 +18,20 @@ export interface MfaRequest {
   token: string;
 }
 
-
+export interface IAuthView {
+  token: string;
+  roles: string[];
+  requiresMfa: boolean;
+}
 /**
  * Represents the response returned after a login attempt.
  *
  * @property token - The authentication token issued upon successful login. Optional; may be absent if login fails or further authentication is required.
  * @property requiresMfa - Indicates whether multi-factor authentication (MFA) is required to complete the login process.
- * @property succeeded - Specifies whether the login attempt was successful.
+ * @property success - Specifies whether the login attempt was successful.
  */
 export interface ILoginResponse {
-  token?: string | null;
-  roles?: string[] | null;
-  requiresMfa: boolean;
-  succeeded: boolean;
-  message?: string | null;
+  result?: IAuthView;
+  success: boolean;
+  errors?: string[] | null;
 }

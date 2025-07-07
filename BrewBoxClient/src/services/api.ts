@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import type { IRegisterRequest } from './account.type';
+import type { IRegisterRequest, IRegisterResponse } from './account.type';
 import type { LoginRequest, ILoginResponse, MfaRequest } from './auth.type';
 import type {
   CreateOrderRequest,
@@ -29,12 +29,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const register = async (request: IRegisterRequest): Promise<string> => {
+export const register = async (
+  request: IRegisterRequest
+): Promise<IRegisterResponse> => {
   try {
-    const response = await api.post<any>('/Account/register', request);
-    if (response.data.succeeded && response.data.token) {
-      localStorage.setItem('jwtToken', response.data.token);
-    }
+    const response = await api.post<IRegisterResponse>(
+      '/Account/register',
+      request
+    );
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ApiError>;
@@ -50,32 +52,31 @@ export const login = async (request: LoginRequest): Promise<ILoginResponse> => {
 
     if (response.status !== 200) {
       return {
-        succeeded: false,
-        message: response.statusText
+        success: false,
+        errors: [response.statusText]
       } as ILoginResponse;
     }
 
-    const data = response.data;
+    console.log(response.data);
+    const data = response.data.result;
+    console.log(data);
 
-    if (!data) {
+    if (!response.data) {
       return {
-        succeeded: false,
-        message: 'Could not authenticate user.'
+        success: false,
+        errors: ['Could not authenticate user.']
       } as ILoginResponse;
     }
 
-    if (!data.succeeded) {
-      return {
-        succeeded: false,
-        message: data.message ?? 'Could not authenticate user.'
-      } as ILoginResponse;
+    if (!response.data.success) {
+      return response.data;
     }
 
-    if (data.token) {
+    if (data) {
       localStorage.setItem('jwtToken', data.token);
       localStorage.setItem('userRoles', data.roles?.join(',') ?? '');
     }
-    return data;
+    return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ApiError>;
     throw new Error(axiosError.response?.data?.message || 'Login failed');
@@ -90,8 +91,9 @@ export const verifyGoogleMfa = async (
       '/Account/mfa/google',
       request
     );
-    if (response.data.succeeded && response.data.token) {
-      localStorage.setItem('jwtToken', response.data.token);
+    if (response.data.success && response.data.result?.token) {
+      localStorage.setItem('jwtToken', response.data.result?.token);
+      localStorage.setItem('userRoles', response.data.result?.roles.join(','));
     }
     return response.data;
   } catch (error) {
@@ -108,8 +110,9 @@ export const verifyAppleMfa = async (
       '/Account/mfa/apple',
       request
     );
-    if (response.data.succeeded && response.data.token) {
-      localStorage.setItem('jwtToken', response.data.token);
+    if (response.data.success && response.data.result) {
+      localStorage.setItem('jwtToken', response.data.result?.token);
+      localStorage.setItem('userRoles', response.data.result?.roles.join(','));
     }
     return response.data;
   } catch (error) {

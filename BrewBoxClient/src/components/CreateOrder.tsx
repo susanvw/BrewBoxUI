@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createOrder } from '../services/api';
 import type { CreateOrderRequest } from '../services/order.type';
 import  type { ERole } from '../services/account.type';
+import { EDrinkType } from '../services/drink.type';
 
 const CreateOrder = () => {
   const [pickupTime, setPickupTime] = useState('');
