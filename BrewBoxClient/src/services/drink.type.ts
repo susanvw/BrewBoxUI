@@ -1,27 +1,16 @@
-/**
- * Represents the available types of drinks in the BrewBox application.
- *
- * - `'Espresso'`: A strong coffee brewed by forcing hot water under pressure through finely-ground coffee beans.
- * - `'Latte'`: A coffee drink made with espresso and steamed milk.
- * - `'Cappuccino'`: A coffee drink consisting of espresso, steamed milk, and milk foam.
- * - `'Americano'`: Espresso diluted with hot water, resulting in a lighter flavour.
- * - `'Mocha'`: A chocolate-flavoured variant of a latte, combining espresso, steamed milk, and chocolate.
- */
-export type EDrinkType =
-  | 'Espresso'
-  | 'Latte'
-  | 'Cappuccino'
-  | 'Americano'
-  | 'Mocha';
+export enum EDrinkSize {
+  Small = 'Small',
+  Medium = 'Medium',
+  Large = 'Large',
+}
 
-/**
- * Represents the available drink sizes.
- * 
- * - `'Small'`: A small-sized drink.
- * - `'Medium'`: A medium-sized drink.
- * - `'Large'`: A large-sized drink.
- */
-export type EDrinkSize = 'Small' | 'Medium' | 'Large';
+export enum EDrinkType {
+  Espresso = 'Espresso',
+  Latte = 'Latte',
+  Cappuccino = 'Cappuccino',
+  Americano = 'Americano',
+  Mocha = 'Mocha',
+}
 
 /**
  * Represents a drink item in an order.
@@ -35,7 +24,7 @@ export type EDrinkSize = 'Small' | 'Medium' | 'Large';
 export interface IDrink {
   id: string;
   orderId: string;
-  type: EDrinkType,
+  type: EDrinkType;
   size: EDrinkSize;
   price: number;
 }

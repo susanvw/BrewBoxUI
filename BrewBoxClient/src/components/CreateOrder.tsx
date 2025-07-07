@@ -1,25 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createOrder, type CreateOrderRequest } from '../services/api';
+import { createOrder } from '../services/api';
+import type { CreateOrderRequest } from '../services/order.type';
+import  type { ERole } from '../services/account.type';
 
 const CreateOrder = () => {
   const [pickupTime, setPickupTime] = useState('');
   const [tip, setTip] = useState('');
-  const [drinks, setDrinks] = useState<{ type: string; size: string; price: string }[]>([
-    { type: '', size: 'Small', price: '' },
-  ]);
+  const [drinks, setDrinks] = useState<
+    { type: string; size: string; price: string }[]
+  >([{ type: '', size: 'Small', price: '' }]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Drink types as per Swagger
-  const drinkTypes = ['Espresso', 'Latte', 'Cappuccino', 'Americano', 'Mocha'];
-  const drinkSizes = ['Small', 'Medium', 'Large'];
-
   // Check if user is a customer
   useEffect(() => {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'Customer') {
+    const userRoles = localStorage.getItem('userRoles')?.split(',') ?? [];
+    const isCustomer = userRoles.includes('Customer');
+    if (!isCustomer) {
       setError('Only customers can create orders.');
       setTimeout(() => navigate('/orders'), 2000);
     }
@@ -29,7 +28,11 @@ const CreateOrder = () => {
     setDrinks([...drinks, { type: '', size: 'Small', price: '' }]);
   };
 
-  const handleDrinkChange = (index: number, field: keyof typeof drinks[0], value: string) => {
+  const handleDrinkChange = (
+    index: number,
+    field: keyof (typeof drinks)[0],
+    value: string
+  ) => {
     const newDrinks = [...drinks];
     newDrinks[index][field] = value;
     setDrinks(newDrinks);
@@ -50,12 +53,12 @@ const CreateOrder = () => {
 
     // Validate drinks
     for (const drink of drinks) {
-      if (!drinkTypes.includes(drink.type)) {
-        setError(`Invalid drink type. Choose from: ${drinkTypes.join(', ')}.`);
+      if (!EDrinkType.includes(drink.type)) {
+        setError(`Invalid drink type. Choose from: ${EDrinkType.join(', ')}.`);
         setLoading(false);
         return;
       }
-      if (!drinkSizes.includes(drink.size)) {
+      if (!EDrinkSize.includes(drink.size)) {
         setError('Invalid drink size.');
         setLoading(false);
         return;
@@ -83,8 +86,8 @@ const CreateOrder = () => {
         drinks: drinks.map((drink) => ({
           type: drink.type,
           size: drink.size,
-          price: parseFloat(drink.price),
-        })),
+          price: parseFloat(drink.price)
+        }))
       };
       await createOrder(request);
       navigate('/orders');
@@ -100,45 +103,49 @@ const CreateOrder = () => {
   };
 
   return (
-    <div className="register-container">
+    <div className='register-container'>
       <h2>Create Order</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit} className="create-order">
+      {error && <div className='error'>{error}</div>}
+      <form onSubmit={handleSubmit} className='create-order'>
         <div>
-          <label htmlFor="pickupTime">Pickup Time</label>
+          <label htmlFor='pickupTime'>Pickup Time</label>
           <input
-            id="pickupTime"
-            type="datetime-local"
+            id='pickupTime'
+            type='datetime-local'
             value={pickupTime}
             onChange={(e) => setPickupTime(e.target.value)}
             required
           />
         </div>
         <div>
-          <label htmlFor="tip">Tip ($)</label>
+          <label htmlFor='tip'>Tip ($)</label>
           <input
-            id="tip"
-            type="number"
-            step="0.01"
+            id='tip'
+            type='number'
+            step='0.01'
             value={tip}
             onChange={(e) => setTip(e.target.value)}
-            placeholder="Optional"
+            placeholder='Optional'
           />
         </div>
         <h3>Drinks</h3>
         {drinks.map((drink, index) => (
-          <div key={index} className="drink-entry">
+          <div key={index} className='drink-entry'>
             <div>
               <label htmlFor={`drink-type-${index}`}>Type</label>
               <select
                 id={`drink-type-${index}`}
                 value={drink.type}
-                onChange={(e) => handleDrinkChange(index, 'type', e.target.value)}
+                onChange={(e) =>
+                  handleDrinkChange(index, 'type', e.target.value)
+                }
                 required
               >
-                <option value="">Select Type</option>
-                {drinkTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
+                <option value=''>Select Type</option>
+                {EDrinkType.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
                 ))}
               </select>
             </div>
@@ -147,10 +154,14 @@ const CreateOrder = () => {
               <select
                 id={`drink-size-${index}`}
                 value={drink.size}
-                onChange={(e) => handleDrinkChange(index, 'size', e.target.value)}
+                onChange={(e) =>
+                  handleDrinkChange(index, 'size', e.target.value)
+                }
               >
-                {drinkSizes.map((size) => (
-                  <option key={size} value={size}>{size}</option>
+                {EDrinkSize.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
                 ))}
               </select>
             </div>
@@ -158,25 +169,27 @@ const CreateOrder = () => {
               <label htmlFor={`drink-price-${index}`}>Price ($)</label>
               <input
                 id={`drink-price-${index}`}
-                type="number"
-                step="0.01"
+                type='number'
+                step='0.01'
                 value={drink.price}
-                onChange={(e) => handleDrinkChange(index, 'price', e.target.value)}
+                onChange={(e) =>
+                  handleDrinkChange(index, 'price', e.target.value)
+                }
                 required
               />
             </div>
           </div>
         ))}
-        <button type="button" onClick={handleAddDrink} disabled={loading}>
+        <button type='button' onClick={handleAddDrink} disabled={loading}>
           Add Drink
         </button>
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? 'Creating Order...' : 'Create Order'}
         </button>
       </form>
-      <div className="link-container">
+      <div className='link-container'>
         <p>
-          <a href="/orders">View Orders</a> | <a href="/">Back to Home</a>
+          <a href='/orders'>View Orders</a> | <a href='/'>Back to Home</a>
         </p>
       </div>
     </div>

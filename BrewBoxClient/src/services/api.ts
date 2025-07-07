@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosHeaders, type AxiosHeaderValue } from 'axios';
+import axios, { AxiosError } from 'axios';
 import type { IRegisterRequest } from './account.type';
 import type { LoginRequest, ILoginResponse, MfaRequest } from './auth.type';
 import type {
@@ -48,7 +48,7 @@ export const login = async (request: LoginRequest): Promise<ILoginResponse> => {
   try {
     const response = await api.post<ILoginResponse>('/Auth/login', request);
 
-    if (response.status != 200) {
+    if (response.status !== 200) {
       return {
         succeeded: false,
         message: response.statusText
@@ -73,6 +73,7 @@ export const login = async (request: LoginRequest): Promise<ILoginResponse> => {
 
     if (data.token) {
       localStorage.setItem('jwtToken', data.token);
+      localStorage.setItem('userRoles', data.roles?.join(',') ?? '');
     }
     return data;
   } catch (error) {

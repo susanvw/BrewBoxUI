@@ -28,6 +28,7 @@ export interface MfaRequest {
  */
 export interface ILoginResponse {
   token?: string | null;
+  roles?: string[] | null;
   requiresMfa: boolean;
   succeeded: boolean;
   message?: string | null;
