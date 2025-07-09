@@ -26,7 +26,7 @@ const OrderList = () => {
       const token = await requestNotificationPermission();
       if (token) {
         try {
-          registerFcmToken(token);
+          registerFcmToken();
         } catch (err: any) {
           console.error('Failed to register FCM token:', err);
         }

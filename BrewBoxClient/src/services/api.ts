@@ -233,6 +233,6 @@ export const logout = (): void => {
   localStorage.removeItem('jwtToken');
 };
 
-export function registerFcmToken(token: string) {
+export function registerFcmToken() {
   throw new Error('Function not implemented.');
 }

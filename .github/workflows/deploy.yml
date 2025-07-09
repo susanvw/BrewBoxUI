@@ -7,6 +7,7 @@ env:
   AZURE_WEBAPP_NAME: brewboxapp
   AZURE_WEBAPP_PACKAGE_PATH: './build' # or './dist' for Vite
   NODE_VERSION: '18.x'
+  REACT_APP_API_URL: 'http://brewbox.azurewebsites.net' # Add env variable
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createOrder, updateOrderStatus } from '../services/api';
-import { EOrderStatus, type CreateOrderRequest } from '../services/order.type';
+import { createOrder } from '../services/api';
+import { type CreateOrderRequest } from '../services/order.type';
 import { EDrinkType, EDrinkSize } from '../services/drink.type';
 import { toast } from 'react-toastify';
 
@@ -13,7 +13,6 @@ const CreateOrder = () => {
   >([{ type: '', size: 'Small', price: '' }]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
   const [isOrderCreated, setIsOrderCreated] = useState(false);
   const navigate = useNavigate();
 
@@ -127,7 +126,8 @@ const CreateOrder = () => {
         })),
       };
       const response = await createOrder(request);
-      setOrderId(response.id); // Assuming createOrder returns { orderId: string }
+      console.log(response.id);
+     // setOrderId(response.id); // Assuming createOrder returns { orderId: string }
       setIsOrderCreated(true);
       toast.success('Order created successfully.', {
         position: 'top-right',
