@@ -5,7 +5,7 @@ on:
       - main
 env:
   AZURE_WEBAPP_NAME: brewboxapp
-  AZURE_WEBAPP_PACKAGE_PATH: './build' # or './dist' for Vite
+  AZURE_WEBAPP_PACKAGE_PATH: './dist' # or './dist' for Vite
   NODE_VERSION: '18.x'
   VITE_APP_API_URL: 'http://brewbox.azurewebsites.net' # Add env variable
 jobs:
