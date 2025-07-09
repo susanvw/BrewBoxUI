@@ -21,6 +21,7 @@ export interface IRegisterRequest {
   email: string;
   password: string;
   role: ERole;
+  displayName: string;
 }
 
 /**

@@ -18,7 +18,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showMfa, setShowMfa] = useState(false);
   const navigate = useNavigate();
-  // Listen for foreground FCM messages
 
   useEffect(() => {
     if (error) {
@@ -56,7 +55,7 @@ const Login = () => {
       const response = await login(request);
 
       if (!response.success || !response.result) {
-        setError(response.errors?.join(',') ?? 'Could not authenticate user.');
+        setError(response.errors?.join(', ') ?? 'Could not authenticate user.');
       }
 
       if (isAuthenticated()) {
@@ -103,8 +102,7 @@ const Login = () => {
       {error && <div className='error'>{error}</div>}
       {!showMfa ? (
         <form onSubmit={handleLoginSubmit}>
-          <div>
-            <label htmlFor='email'>Email</label>
+          <div className='form-field'>
             <input
               id='email'
               type='email'
@@ -114,8 +112,7 @@ const Login = () => {
               required
             />
           </div>
-          <div>
-            <label htmlFor='password'>Password</label>
+          <div className='form-field'>
             <input
               id='password'
               type='password'
@@ -125,8 +122,7 @@ const Login = () => {
               required
             />
           </div>
-          <div>
-            <label htmlFor='mfaType'>MFA Type</label>
+          <div className='form-field'>
             <select
               id='mfaType'
               value={mfaType}
@@ -139,14 +135,15 @@ const Login = () => {
               <option value='Apple'>Apple</option>
             </select>
           </div>
-          <button type='submit' disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
+          <div className='form-field'>
+            <button type='submit' disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </div>
         </form>
       ) : (
         <form onSubmit={handleMfaSubmit}>
-          <div>
-            <label htmlFor='mfaToken'>MFA Token</label>
+          <div className='form-field'>
             <input
               id='mfaToken'
               type='text'
@@ -156,9 +153,11 @@ const Login = () => {
               required
             />
           </div>
-          <button type='submit' disabled={loading}>
-            {loading ? 'Verifying...' : 'Verify MFA'}
-          </button>
+          <div className='form-field'>
+            <button type='submit' disabled={loading}>
+              {loading ? 'Verifying...' : 'Verify MFA'}
+            </button>
+          </div>
         </form>
       )}
       <div className='link-container'>

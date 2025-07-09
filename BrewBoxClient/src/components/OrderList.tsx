@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  getOrders,
   getActiveOrders,
   claimOrder,
   updateOrderStatus,
   updatePaymentStatus,
   logout,
-  registerFcmToken
+  registerFcmToken,
+  getCurrentOrders
 } from '../services/api';
 import { requestNotificationPermission, onMessageListener } from '../firebase';
-import type { IOrder } from '../services/order.type';
+import { EOrderStatus, type IOrder } from '../services/order.type';
 import { toast } from 'react-toastify';
 
 const OrderList = () => {
@@ -26,7 +26,7 @@ const OrderList = () => {
       const token = await requestNotificationPermission();
       if (token) {
         try {
-          await registerFcmToken(token);
+          registerFcmToken(token);
         } catch (err: any) {
           console.error('Failed to register FCM token:', err);
         }
@@ -34,37 +34,43 @@ const OrderList = () => {
     };
     initializeNotifications();
 
-// Listen for foreground FCM messages
-    onMessageListener().then((payload: any) => {
-      const { notification } = payload;
-      toast.info(`${notification.title}: ${notification.body}`, {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'dark',
-      });
-    }).catch((err) => console.error('Foreground notification error:', err));
+    // Listen for foreground FCM messages
+    onMessageListener()
+      .then((payload: any) => {
+        const { notification } = payload;
+        toast.info(`${notification.title}: ${notification.body}`, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'dark'
+        });
+      })
+      .catch((err) => console.error('Foreground notification error:', err));
 
     // Fetch orders and set up polling
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const userRole = localStorage.getItem('userRole') || 'Customer';
-        setIsBarista(userRole === 'Barista');
-        const newOrders = isBarista
-          ? await getActiveOrders()
-          : await getOrders();
+        const userRoles = localStorage.getItem('userRoles')?.split(',') || [
+          'Customer'
+        ];
+        setIsBarista(userRoles.includes('Barista'));
+        const newOrders = userRoles.includes('Barista')
+          ? await getCurrentOrders()
+          : await getActiveOrders();
+
+          console.log(newOrders);
 
         // Check for new unclaimed orders (baristas) or status changes
         setOrders((prevOrders) => {
           if (isBarista) {
             const newUnclaimed = newOrders.filter(
               (newOrder) =>
-                newOrder.status === 'New' &&
+                newOrder.status === EOrderStatus.Placed &&
                 !prevOrders.some((prev) => prev.id === newOrder.id)
             );
             if (newUnclaimed.length > 0) {
@@ -112,7 +118,9 @@ const OrderList = () => {
       await claimOrder(orderId);
       setOrders(
         orders.map((order) =>
-          order.id === orderId ? { ...order, status: 'Claimed' } : order
+          order.id === orderId
+            ? { ...order, status: EOrderStatus.Claimed }
+            : order
         )
       );
     } catch (err: any) {
@@ -138,10 +146,12 @@ const OrderList = () => {
 
   const handleCancelOrder = async (orderId: string) => {
     try {
-      await updateOrderStatus(orderId, { status: 'Completed' });
+      await updateOrderStatus(orderId, { status: EOrderStatus.Ready });
       setOrders(
         orders.map((order) =>
-          order.id === orderId ? { ...order, status: 'Completed' } : order
+          order.id === orderId
+            ? { ...order, status: EOrderStatus.Ready }
+            : order
         )
       );
     } catch (err: any) {
@@ -176,9 +186,6 @@ const OrderList = () => {
             <li key={order.id} className='order-list-item'>
               <div className='order-details'>
                 <p>
-                  <strong>Order ID:</strong> {order.id}
-                </p>
-                <p>
                   <strong>Status:</strong> {order.status}
                 </p>
                 <p>
@@ -186,7 +193,7 @@ const OrderList = () => {
                   {new Date(order.pickupTime).toLocaleString()}
                 </p>
                 <p>
-                  <strong>Total Price:</strong> ${order.totalPrice.toFixed(2)}
+                  <strong>Total Price:</strong> {order.totalPrice.toFixed(2)}
                 </p>
                 {order.tip && (
                   <p>
@@ -197,11 +204,11 @@ const OrderList = () => {
                   <strong>Paid:</strong> {order.paid ? 'Yes' : 'No'}
                 </p>
                 <p>
-                  <strong>Customer:</strong> {order.createdById || 'N/A'}
+                  <strong>Customer:</strong> {order.customer || 'N/A'}
                 </p>
-                {order.baristaId && (
+                {order.barista && (
                   <p>
-                    <strong>Barista:</strong> {order.baristaId}
+                    <strong>Barista:</strong> {order.barista}
                   </p>
                 )}
                 <p>
@@ -210,13 +217,13 @@ const OrderList = () => {
                 <ul>
                   {order.drinks.map((drink) => (
                     <li key={drink.id}>
-                      {drink.type} ({drink.size}) - ${drink.price.toFixed(2)}
+                      {drink.type} ({drink.size}) - {drink.price.toFixed(2)}
                     </li>
                   ))}
                 </ul>
               </div>
               <div className='order-actions'>
-                {isBarista && order.status === 'New' && (
+                {isBarista && order.status === EOrderStatus.Placed && (
                   <>
                     <button onClick={() => handleClaimOrder(order.id)}>
                       Claim
@@ -226,10 +233,12 @@ const OrderList = () => {
                     </button>
                   </>
                 )}
-                {isBarista && order.status === 'Claimed' && (
+                {isBarista && order.status === EOrderStatus.Claimed && (
                   <>
                     <button
-                      onClick={() => handleUpdateStatus(order.id, 'InProgress')}
+                      onClick={() =>
+                        handleUpdateStatus(order.id, EOrderStatus.InProgress)
+                      }
                     >
                       In Progress
                     </button>
@@ -238,10 +247,12 @@ const OrderList = () => {
                     </button>
                   </>
                 )}
-                {isBarista && order.status === 'InProgress' && (
+                {isBarista && order.status === EOrderStatus.InProgress && (
                   <>
                     <button
-                      onClick={() => handleUpdateStatus(order.id, 'Ready')}
+                      onClick={() =>
+                        handleUpdateStatus(order.id, EOrderStatus.Ready)
+                      }
                     >
                       Ready for Collection
                     </button>
@@ -250,14 +261,18 @@ const OrderList = () => {
                     </button>
                   </>
                 )}
-                {isBarista && !order.paid && (
-                  <button onClick={() => handleMarkPaid(order.id)}>
-                    Mark Paid
-                  </button>
-                )}
-                {!isBarista && order.status === 'Ready' && (
+                {isBarista &&
+                  order.status ===
+                    EOrderStatus.Ready && (
+                      <button onClick={() => handleMarkPaid(order.id)}>
+                        Mark Paid
+                      </button>
+                    )}
+                {!isBarista && order.status === EOrderStatus.Ready && (
                   <button
-                    onClick={() => handleUpdateStatus(order.id, 'Completed')}
+                    onClick={() =>
+                      handleUpdateStatus(order.id, EOrderStatus.Collected)
+                    }
                   >
                     Mark Collected
                   </button>
@@ -268,18 +283,12 @@ const OrderList = () => {
         </ul>
       )}
       <div className='link-container'>
-        <button
-          onClick={() => navigate('/create-order')}
-          className='create-order-button'
-        >
-          Create Order
-        </button>
+        <button onClick={() => navigate('/create-order')}>Create Order</button>
         <button
           onClick={() => {
             logout();
             navigate('/login');
           }}
-          className='logout-button'
         >
           Logout
         </button>
@@ -289,4 +298,3 @@ const OrderList = () => {
 };
 
 export default OrderList;
-

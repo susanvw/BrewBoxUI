@@ -1,11 +1,12 @@
 import axios, { AxiosError } from 'axios';
 import type { IRegisterRequest, IRegisterResponse } from './account.type';
 import type { LoginRequest, ILoginResponse, MfaRequest } from './auth.type';
-import type {
-  CreateOrderRequest,
-  IOrder,
-  UpdateOrderStatusRequest,
-  UpdatePaymentRequest
+import {
+  EOrderStatus,
+  type CreateOrderRequest,
+  type IOrder,
+  type UpdateOrderStatusRequest,
+  type UpdatePaymentRequest
 } from './order.type';
 export interface ApiError {
   error?: string;
@@ -13,8 +14,9 @@ export interface ApiError {
   details?: string[];
 }
 
+const apiUrl = process.env.REACT_APP_API_URL;
 const api = axios.create({
-  baseURL: 'http://localhost:5196/api',
+  baseURL: `${apiUrl}/api`,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -56,8 +58,6 @@ export const login = async (request: LoginRequest): Promise<ILoginResponse> => {
         errors: [response.statusText]
       } as ILoginResponse;
     }
-
-    console.log(response.data);
     const data = response.data.result;
     console.log(data);
 
@@ -124,6 +124,7 @@ export const verifyAppleMfa = async (
 export const getOrders = async (): Promise<IOrder[]> => {
   try {
     const response = await api.get<any>('/Orders');
+    console.log(response);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ApiError>;
@@ -136,6 +137,18 @@ export const getOrders = async (): Promise<IOrder[]> => {
 export const getActiveOrders = async (): Promise<IOrder[]> => {
   try {
     const response = await api.get<any>('/Orders/active');
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiError>;
+    throw new Error(
+      axiosError.response?.data?.message || 'Failed to fetch active orders'
+    );
+  }
+};
+
+export const getCurrentOrders = async (): Promise<IOrder[]> => {
+  try {
+    const response = await api.get<any>('/Orders/current');
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ApiError>;
@@ -173,7 +186,7 @@ export const createOrder = async (
 
 export const claimOrder = async (id: string): Promise<void> => {
   try {
-    await api.put(`/Orders/${id}/claim`);
+    await api.put(`/Orders/${id}/status`, { status: EOrderStatus.Claimed });
   } catch (error) {
     const axiosError = error as AxiosError<ApiError>;
     throw new Error(

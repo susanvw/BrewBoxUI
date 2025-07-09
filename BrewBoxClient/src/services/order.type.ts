@@ -1,20 +1,28 @@
 import type { IDrink } from './drink.type';
 
 /**
- * Represents the possible statuses for an order in the system.
+ * Represents the various statuses an order can have throughout its lifecycle.
  *
- * - `'New'`: The order has been created but not yet processed.
- * - `'Claimed'`: The order has been claimed by a staff member or system for processing.
- * - `'InProgress'`: The order is currently being prepared or processed.
- * - `'Ready'`: The order is ready for pickup or delivery.
- * - `'Completed'`: The order has been fulfilled and completed.
+ * @remarks
+ * The `EOrderStatus` enum is used to track and manage the state of an order
+ * from creation to completion or cancellation.
+ *
+ * @enum {number}
+ * @property {number} Placed - The order has been placed by the customer.
+ * @property {number} Claimed - The order has been claimed for processing.
+ * @property {number} InProgress - The order is currently being prepared.
+ * @property {number} Ready - The order is ready for collection.
+ * @property {number} Collected - The order has been collected by the customer.
+ * @property {number} Cancelled - The order has been cancelled.
  */
-export type EOrderStatus =
-  | 'New'
-  | 'Claimed'
-  | 'InProgress'
-  | 'Ready'
-  | 'Completed';
+export enum EOrderStatus {
+    Placed = 'Placed',
+    Claimed = 'Claimed',
+    InProgress = 'InProgress',
+    Ready = 'Ready',
+    Collected = 'Collected',
+    Cancelled = 'Cancelled'
+}
 
 /**
  * Represents an order placed by a customer.
@@ -31,8 +39,8 @@ export type EOrderStatus =
  */
 export interface IOrder {
   id: string;
-  createdById: string;
-  baristaId?: string;
+  customer: string;
+  barista?: string;
   status: EOrderStatus;
   pickupTime: string;
   totalPrice: number;
