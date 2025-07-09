@@ -14,7 +14,7 @@ export interface ApiError {
   details?: string[];
 }
 
-const apiUrl = process.env.REACT_APP_API_URL;
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 const api = axios.create({
   baseURL: `${apiUrl}/api`,
   headers: {
