@@ -127,7 +127,6 @@ const CreateOrder = () => {
       };
       const response = await createOrder(request);
       console.log(response.id);
-     // setOrderId(response.id); // Assuming createOrder returns { orderId: string }
       setIsOrderCreated(true);
       toast.success('Order created successfully.', {
         position: 'top-right',
@@ -148,38 +147,41 @@ const CreateOrder = () => {
   };
 
   return (
-    <div className='register-container'>
-      <h2>Create Order</h2>
-      {error && <div className='error'>{error}</div>}
+    <div className="form-container">
+      {error && <div className="error">{error}</div>}
       <form onSubmit={handleCreateOrder}>
-        <div className='form-field'>
-          <input
-            id='pickupTime'
-            type='datetime-local'
-            value={pickupTime}
-            onChange={(e) => setPickupTime(e.target.value)}
-            placeholder='Select pickup time'
-            aria-label='Pickup time'
-            required
-            disabled={isOrderCreated}
-          />
+        <div className="drink-card">
+          <div className="form-field">
+            <label htmlFor="pickupTime">Pickup Time</label>
+            <input
+              id="pickupTime"
+              type="datetime-local"
+              value={pickupTime}
+              onChange={(e) => setPickupTime(e.target.value)}
+              placeholder="Select pickup time"
+              aria-label="Pickup time"
+              required
+              disabled={isOrderCreated}
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="tip">Tip (optional)</label>
+            <input
+              id="tip"
+              type="number"
+              step="0.01"
+              value={tip}
+              onChange={(e) => setTip(e.target.value)}
+              placeholder="Tip amount"
+              aria-label="Tip amount"
+              disabled={isOrderCreated}
+            />
+          </div>
         </div>
-        <div className='form-field'>
-          <input
-            id='tip'
-            type='number'
-            step='0.01'
-            value={tip}
-            onChange={(e) => setTip(e.target.value)}
-            placeholder='Tip (optional)'
-            aria-label='Tip amount'
-            disabled={isOrderCreated}
-          />
-        </div>
-        <h3>Drinks</h3>
         {drinks.map((drink, index) => (
-          <div key={index} className='drink-entry'>
-            <div className='form-field'>
+          <div key={index} className="drink-card">
+            <div className="form-field">
+              <label htmlFor={`drink-type-${index}`}>Drink Type</label>
               <select
                 id={`drink-type-${index}`}
                 value={drink.type}
@@ -188,7 +190,7 @@ const CreateOrder = () => {
                 required
                 disabled={isOrderCreated}
               >
-                <option value=''>Select Type</option>
+                <option value="">Select Type</option>
                 {drinkTypes.map((type) => (
                   <option key={type} value={type}>
                     {type}
@@ -196,7 +198,8 @@ const CreateOrder = () => {
                 ))}
               </select>
             </div>
-            <div className='form-field'>
+            <div className="form-field">
+              <label htmlFor={`drink-size-${index}`}>Size</label>
               <select
                 id={`drink-size-${index}`}
                 value={drink.size}
@@ -211,56 +214,54 @@ const CreateOrder = () => {
                 ))}
               </select>
             </div>
-            <div className='form-field'>
+            <div className="form-field">
+              <label htmlFor={`drink-price-${index}`}>Price</label>
               <input
                 id={`drink-price-${index}`}
-                type='number'
-                step='0.01'
+                type="number"
+                step="0.01"
                 value={drink.price}
                 onChange={(e) => handleDrinkChange(index, 'price', e.target.value)}
-                placeholder='Price'
+                placeholder="Price"
                 aria-label={`Price for drink ${index + 1}`}
                 required
                 disabled={isOrderCreated}
               />
             </div>
-            <div className='form-field'>
+            <div className="drink-card-actions">
               <button
-                type='button'
+                type="button"
+                className="icon-button"
                 onClick={() => handleRemoveDrink(index)}
                 disabled={drinks.length <= 1 || isOrderCreated}
                 aria-label={`Remove drink ${index + 1}`}
               >
-                Remove Drink
+                −
               </button>
             </div>
           </div>
         ))}
-        <div className='form-field'>
+        <div className="drink-card-actions">
           <button
-            type='button'
+            type="button"
+            className="icon-button"
             onClick={handleAddDrink}
             disabled={loading || isOrderCreated}
-            aria-label='Add another drink'
+            aria-label="Add another drink"
           >
-            Add Drink
+            +
           </button>
         </div>
-        <div className='form-field'>
+        <div className="form-field">
           <button
-            type='submit'
+            type="submit"
             disabled={loading || isOrderCreated}
-            aria-label='Create order'
+            aria-label="Create order"
           >
             {loading ? 'Creating Order...' : 'Create Order'}
           </button>
         </div>
       </form>
-      <div className='link-container'>
-        <p>
-          <a href='/orders'>View Orders</a>
-        </p>
-      </div>
     </div>
   );
 };

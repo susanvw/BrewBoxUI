@@ -4,6 +4,9 @@ import Register from './components/Register';
 import CreateOrder from './components/CreateOrder';
 import OrderList from './components/OrderList';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import Statement from './components/Statement';
+import Profile from './components/Profile';
 
 function App() {
   return (
@@ -12,9 +15,11 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<OrderList />} />
-          <Route path="/orders" element={<OrderList />} />
-          <Route path="/create-order" element={<CreateOrder />} />
+          <Route path="/" element={<Layout><OrderList /></Layout>} />
+          <Route path="/orders" element={<Layout><OrderList /></Layout>} />
+          <Route path="/create-order" element={<Layout><CreateOrder /></Layout>} />
+          <Route path="/statement" element={<Layout><Statement /></Layout>} />
+          <Route path="/profile" element={<Layout><Profile /></Layout>} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

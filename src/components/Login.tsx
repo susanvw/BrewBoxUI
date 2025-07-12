@@ -97,8 +97,8 @@ const Login = () => {
   };
 
   return (
-    <div className='register-container'>
-      <h2>Login to BrewBox</h2>
+    <div className='container'>
+      <h2>Login</h2>
       {error && <div className='error'>{error}</div>}
       {!showMfa ? (
         <form onSubmit={handleLoginSubmit}>

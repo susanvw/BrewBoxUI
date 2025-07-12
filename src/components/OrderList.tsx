@@ -63,7 +63,7 @@ const OrderList = () => {
           ? await getCurrentOrders()
           : await getActiveOrders();
 
-          console.log(newOrders);
+        console.log(newOrders);
 
         // Check for new unclaimed orders (baristas) or status changes
         setOrders((prevOrders) => {
@@ -173,13 +173,12 @@ const OrderList = () => {
   };
 
   return (
-    <div className='register-container'>
-      <h2>Orders</h2>
+    <div className='form-container'>
       {error && <div className='error'>{error}</div>}
       {loading ? (
-        <p className='text-center text-vikinger-light'>Loading orders...</p>
+        <p className='text-center'>Loading orders...</p>
       ) : orders.length === 0 ? (
-        <p className='text-center text-vikinger-light'>No orders found.</p>
+        <p className='text-center'>No orders found.</p>
       ) : (
         <ul className='order-list'>
           {orders.map((order) => (
@@ -262,12 +261,11 @@ const OrderList = () => {
                   </>
                 )}
                 {isBarista &&
-                  order.status ===
-                    EOrderStatus.Ready && (
-                      <button onClick={() => handleMarkPaid(order.id)}>
-                        Mark Paid
-                      </button>
-                    )}
+                  order.status === EOrderStatus.Ready && (
+                    <button onClick={() => handleMarkPaid(order.id)}>
+                      Mark Paid
+                    </button>
+                  )}
                 {!isBarista && order.status === EOrderStatus.Ready && (
                   <button
                     onClick={() =>
@@ -282,17 +280,6 @@ const OrderList = () => {
           ))}
         </ul>
       )}
-      <div className='link-container'>
-        <button onClick={() => navigate('/create-order')}>Create Order</button>
-        <button
-          onClick={() => {
-            logout();
-            navigate('/login');
-          }}
-        >
-          Logout
-        </button>
-      </div>
     </div>
   );
 };

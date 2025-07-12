@@ -72,8 +72,8 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
-      <h2>Register for BrewBox</h2>
+    <div className="container">
+      <h2>Register</h2>
       {error && <div className="error">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-field">

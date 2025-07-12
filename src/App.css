@@ -6,16 +6,162 @@
   --vikinger-secondary: #23d2e2;
   --vikinger-gray: #2d2f4a;
   --vikinger-error: #ff4d4f;
+  --font-primary: 'Helvetica Neue', Arial, sans-serif;
+  --font-secondary: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Global styles */
 body {
   background-color: var(--vikinger-dark);
   color: var(--vikinger-light);
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-primary);
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  width: 100vw;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Top title bar */
+.title-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--vikinger-gray);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.title-bar h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--vikinger-light);
+}
+
+/* Container styles */
+.container {
+  max-width: 800px;
+  width: 100%;
+  margin: 4rem auto 6rem; /* Adjusted for title bar and tab bar when present */
+  padding: 2rem;
+  background-color: var(--vikinger-gray);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.form-container {
+  max-width: 800px;
+  width: 100%;
+  margin: 4rem auto 6rem;
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* Bottom tab bar */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--vikinger-gray);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.5rem 0;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  color: var(--vikinger-light);
+  font-size: 1rem;
+  font-family: var(--font-primary);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.tab-button:hover,
+.tab-button.active {
+  color: var(--vikinger-accent);
+}
+
+.tab-button.primary {
+  background-color: var(--vikinger-accent);
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--vikinger-light);
+}
+
+.tab-button.primary:hover {
+  background-color: #4a46c8;
+}
+
+/* Drink card styles */
+.drink-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #4a4d6a;
+  border-radius: 8px;
+  background-color: #3b3e5a;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.drink-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.icon-button {
+  background-color: #3b3e5a;
+  border: 1px solid #4a4d6a;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  color: var(--vikinger-light);
+  cursor: pointer;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.icon-button:hover {
+  border-color: var(--vikinger-accent);
+  background-color: #4a46c8;
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 h2 {
@@ -24,16 +170,6 @@ h2 {
   font-weight: bold;
   text-align: center;
   margin-bottom: 1.5rem;
-}
-
-/* Register/Login/OrderList container */
-.register-container {
-  max-width: 800px;
-  margin: 4rem auto;
-  padding: 2rem;
-  background-color: var(--vikinger-gray);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Form styles */
@@ -46,7 +182,7 @@ form {
 /* Form field wrapper to standardize layout */
 .form-field {
   width: 100%;
-  margin-bottom: 1rem; /* Matches the gap in form flex */
+  margin-bottom: 1rem;
 }
 
 /* Ensure inputs, select, and button have consistent sizing */
@@ -59,9 +195,9 @@ select {
   border-radius: 8px;
   color: var(--vikinger-light);
   font-size: 1rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-primary);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  box-sizing: border-box; /* Ensure padding and border are included in width */
+  box-sizing: border-box;
 }
 
 input:focus,
@@ -73,7 +209,7 @@ select:focus {
 
 /* Specific styles for select to include custom arrow */
 select {
-  padding-right: 2.5rem; /* Space for arrow */
+  padding-right: 2.5rem;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -89,6 +225,45 @@ select option {
   color: var(--vikinger-light);
 }
 
+/* Button styles */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: var(--font-primary);
+  background-color: #3b3e5a;
+  color: var(--vikinger-light);
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.3s ease;
+}
+
+button:hover {
+  border-color: var(--vikinger-accent);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+  box-shadow: 0 0 5px rgba(97, 93, 250, 0.5);
+}
+
+/* Primary button styles */
+button.primary,
+button[type="submit"] {
+  background-color: var(--vikinger-accent);
+  border-color: var(--vikinger-accent);
+  color: var(--vikinger-light);
+  font-weight: 600;
+}
+
+button.primary:hover,
+button[type="submit"]:hover {
+  background-color: #4a46c8;
+  border-color: #4a46c8;
+}
+
 /* Error message */
 .error {
   color: var(--vikinger-error);
@@ -102,6 +277,7 @@ select option {
 a {
   color: var(--vikinger-accent);
   text-decoration: none;
+  font-weight: 500;
   transition: color 0.3s ease;
 }
 
@@ -109,6 +285,7 @@ a:hover {
   color: var(--vikinger-secondary);
 }
 
+/* Link container */
 .link-container {
   text-align: center;
   margin-top: 1rem;
@@ -150,20 +327,13 @@ a:hover {
   flex-wrap: wrap;
 }
 
-/* Reusable styles for other components */
-.drink-entry {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
 /* Toastify custom styles */
 .Toastify__toast {
   background-color: var(--vikinger-gray);
   color: var(--vikinger-light);
   border: 1px solid var(--vikinger-accent);
   border-radius: 8px;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-primary);
 }
 
 .Toastify__toast--success {
@@ -182,7 +352,17 @@ a:hover {
   background: var(--vikinger-accent);
 }
 
+/* Media queries */
 @media (max-width: 640px) {
+  body {
+    justify-content: flex-start;
+  }
+
+  .container,
+  .form-container {
+    margin: 4rem auto 6rem; /* Adjusted for title bar and tab bar when present */
+  }
+
   .order-actions {
     flex-direction: column;
     align-items: stretch;
@@ -192,8 +372,70 @@ a:hover {
     width: 100%;
   }
 
-  .drink-entry {
+  .drink-card {
     flex-direction: column;
+  }
+
+  .title-bar h1 {
+    font-size: 1.2rem;
+  }
+
+  .tab-button {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  .tab-button.primary {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.2rem;
+  }
+
+  .icon-button {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: #213547;
+  }
+
+  .container,
+  .form-container,
+  .title-bar,
+  .tab-bar,
+  .drink-card {
+    background-color: #e0e0e0;
+  }
+
+  button,
+  .icon-button {
+    background-color: #f9f9f9;
+  }
+
+  button.primary,
+  button[type="submit"] {
+    background-color: var(--vikinger-accent);
+    border-color: var(--vikinger-accent);
+  }
+
+  button.primary:hover,
+  button[type="submit"]:hover {
+    background-color: #4a46c8;
+    border-color: #4a46c8;
+  }
+
+  a:hover {
+    color: var(--vikinger-secondary);
   }
 }
 
