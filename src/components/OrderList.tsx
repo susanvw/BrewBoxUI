@@ -196,7 +196,7 @@ const OrderList = () => {
                 </p>
                 {order.tip && (
                   <p>
-                    <strong>Tip:</strong> ${order.tip.toFixed(2)}
+                    <strong>Tip:</strong> {order.tip.toFixed(2)}
                   </p>
                 )}
                 <p>
@@ -223,14 +223,14 @@ const OrderList = () => {
               </div>
               <div className='order-actions'>
                 {isBarista && order.status === EOrderStatus.Placed && (
-                  <>
-                    <button onClick={() => handleClaimOrder(order.id)}>
-                      Claim
-                    </button>
-                    <button onClick={() => handleCancelOrder(order.id)}>
-                      Cancel
-                    </button>
-                  </>
+                  <button onClick={() => handleClaimOrder(order.id)}>
+                    Claim
+                  </button>
+                )}
+                {order.status === EOrderStatus.Placed && (
+                  <button onClick={() => handleCancelOrder(order.id)}>
+                    Cancel
+                  </button>
                 )}
                 {isBarista && order.status === EOrderStatus.Claimed && (
                   <>
@@ -260,12 +260,11 @@ const OrderList = () => {
                     </button>
                   </>
                 )}
-                {isBarista &&
-                  order.status === EOrderStatus.Ready && (
-                    <button onClick={() => handleMarkPaid(order.id)}>
-                      Mark Paid
-                    </button>
-                  )}
+                {isBarista && order.status === EOrderStatus.Ready && (
+                  <button onClick={() => handleMarkPaid(order.id)}>
+                    Mark Paid
+                  </button>
+                )}
                 {!isBarista && order.status === EOrderStatus.Ready && (
                   <button
                     onClick={() =>
