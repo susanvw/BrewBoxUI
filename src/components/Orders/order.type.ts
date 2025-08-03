@@ -1,4 +1,4 @@
-import type { IDrink } from './drink.type';
+import type { IDrink } from "../Drinks/drink.type";
 
 /**
  * Represents the various statuses an order can have throughout its lifecycle.
@@ -14,6 +14,7 @@ import type { IDrink } from './drink.type';
  * @property {number} Ready - The order is ready for collection.
  * @property {number} Collected - The order has been collected by the customer.
  * @property {number} Cancelled - The order has been cancelled.
+ * @property {number} Paid - The order has been Paid.
  */
 export enum EOrderStatus {
     Placed = 'Placed',
@@ -21,7 +22,8 @@ export enum EOrderStatus {
     InProgress = 'InProgress',
     Ready = 'Ready',
     Collected = 'Collected',
-    Cancelled = 'Cancelled'
+    Cancelled = 'Cancelled',
+    Paid = 'Paid'
 }
 
 /**
@@ -58,8 +60,4 @@ export interface CreateOrderRequest {
 
 export interface UpdateOrderStatusRequest {
   status: EOrderStatus
-}
-
-export interface UpdatePaymentRequest {
-  paid: boolean;
 }

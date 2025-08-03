@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { register } from '../services/api';
-import { ERole, type IRegisterRequest } from '../services/account.type';
 import { toast } from 'react-toastify';
+import { ERole, type IRegisterRequest } from './account.type';
+import './Register.css'; // Create this CSS file for styling
+import { register } from './register.service';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ const Register = () => {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: 'dark',
+        theme: 'dark'
       });
     }
   }, [error]);
@@ -72,53 +73,53 @@ const Register = () => {
   };
 
   return (
-    <div className="container">
-      <h2>Register</h2>
-      {error && <div className="error">{error}</div>}
+    <div className='register-container'>
+      <h4>Register</h4>
+      {error && <div className='error'>{error}</div>}
       <form onSubmit={handleSubmit}>
-        <div className="form-field">
+        <div className='form-field'>
           <input
-            id="email"
-            type="email"
+            id='email'
+            type='email'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
+            placeholder='Enter your email'
             required
           />
         </div>
-        <div className="form-field">
+        <div className='form-field'>
           <input
-            id="displayName"
-            type="text"
+            id='displayName'
+            type='text'
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Enter your display name"
+            placeholder='Enter your display name'
             required
           />
         </div>
-        <div className="form-field">
+        <div className='form-field'>
           <input
-            id="password"
-            type="password"
+            id='password'
+            type='password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder='Enter your password'
             required
           />
         </div>
-        <div className="form-field">
+        <div className='form-field'>
           <input
-            id="confirmPassword"
-            type="password"
+            id='confirmPassword'
+            type='password'
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm your password"
+            placeholder='Confirm your password'
             required
           />
         </div>
-        <div className="form-field">
+        <div className='form-field'>
           <select
-            id="role"
+            id='role'
             value={role}
             onChange={(e) => setRole(e.target.value as ERole)}
           >
@@ -126,15 +127,15 @@ const Register = () => {
             <option value={ERole.Barista}>Barista</option>
           </select>
         </div>
-        <div className="form-field">
-          <button type="submit" disabled={loading}>
+        <div className='form-field'>
+          <button type='submit' disabled={loading}>
             {loading ? 'Registering...' : 'Register'}
           </button>
         </div>
       </form>
-      <div className="link-container">
+      <div className='link-container'>
         <p>
-          Already have an account? <a href="/login">Log in</a>
+          Already have an account? <a href='/login'>Log in</a>
         </p>
       </div>
     </div>

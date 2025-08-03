@@ -237,6 +237,7 @@ button {
   color: var(--vikinger-light);
   cursor: pointer;
   transition: border-color 0.25s, box-shadow 0.3s ease;
+  width: 100%;
 }
 
 button:hover {
@@ -251,7 +252,7 @@ button:focus-visible {
 
 /* Primary button styles */
 button.primary,
-button[type="submit"] {
+button[type='submit'] {
   background-color: var(--vikinger-accent);
   border-color: var(--vikinger-accent);
   color: var(--vikinger-light);
@@ -259,7 +260,7 @@ button[type="submit"] {
 }
 
 button.primary:hover,
-button[type="submit"]:hover {
+button[type='submit']:hover {
   background-color: #4a46c8;
   border-color: #4a46c8;
 }
@@ -271,25 +272,6 @@ button[type="submit"]:hover {
   font-weight: 600;
   text-align: center;
   margin-bottom: 1rem;
-}
-
-/* Links */
-a {
-  color: var(--vikinger-accent);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-a:hover {
-  color: var(--vikinger-secondary);
-}
-
-/* Link container */
-.link-container {
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 0.9rem;
 }
 
 /* Order list styles */
@@ -423,19 +405,15 @@ a:hover {
   }
 
   button.primary,
-  button[type="submit"] {
+  button[type='submit'] {
     background-color: var(--vikinger-accent);
     border-color: var(--vikinger-accent);
   }
 
   button.primary:hover,
-  button[type="submit"]:hover {
+  button[type='submit']:hover {
     background-color: #4a46c8;
     border-color: #4a46c8;
-  }
-
-  a:hover {
-    color: var(--vikinger-secondary);
   }
 }
 

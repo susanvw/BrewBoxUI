@@ -1,17 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  getActiveOrders,
-  claimOrder,
-  updateOrderStatus,
-  updatePaymentStatus,
-  logout,
-  registerFcmToken,
-  getCurrentOrders
-} from '../services/api';
-import { requestNotificationPermission, onMessageListener } from '../firebase';
-import { EOrderStatus, type IOrder } from '../services/order.type';
 import { toast } from 'react-toastify';
+import { EOrderStatus, type IOrder } from './order.type';
+import { onMessageListener, requestNotificationPermission } from '../../firebase';
+import { claimOrder, getActiveOrders, getCurrentOrders, updateOrderStatus } from './order.service';
+import { logout } from '../Login/auth.service';
 
 const OrderList = () => {
   const navigate = useNavigate();
@@ -26,7 +19,7 @@ const OrderList = () => {
       const token = await requestNotificationPermission();
       if (token) {
         try {
-          registerFcmToken();
+          // todo register to get data
         } catch (err: any) {
           console.error('Failed to register FCM token:', err);
         }
@@ -161,7 +154,7 @@ const OrderList = () => {
 
   const handleMarkPaid = async (orderId: string) => {
     try {
-      await updatePaymentStatus(orderId, { paid: true });
+      await updateOrderStatus(orderId, { status: EOrderStatus.Paid});
       setOrders(
         orders.map((order) =>
           order.id === orderId ? { ...order, paid: true } : order

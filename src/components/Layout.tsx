@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { logout } from '../services/api';
+import { logout } from './Login/auth.service';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();

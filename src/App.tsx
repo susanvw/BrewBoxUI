@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './components/Login';
-import Register from './components/Register';
-import CreateOrder from './components/CreateOrder';
-import OrderList from './components/OrderList';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Statement from './components/Statement';
 import Profile from './components/Profile';
+import Login from './components/Login/Login';
+import Register from './components/Register/Register';
+import OrderList from './components/Orders/OrderList';
+import CreateOrder from './components/Orders/CreateOrder';
 
 function App() {
   return (
