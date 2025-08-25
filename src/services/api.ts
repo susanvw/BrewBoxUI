@@ -1,4 +1,4 @@
-import axios  from 'axios';
+import axios from 'axios';
 export interface ApiError {
   error?: string;
   message?: string;
@@ -7,7 +7,7 @@ export interface ApiError {
 
 const apiUrl = import.meta.env.VITE_APP_API_URL;
 export const api = axios.create({
-  baseURL: `${apiUrl}/api`,
+  baseURL: `${apiUrl}`,
   headers: {
     'Content-Type': 'application/json'
   }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Layout from '../Layout';
 import { ERole, type IRegisterRequest } from './account.type';
-import './Register.css'; // Create this CSS file for styling
+import './Register.css';
 import { register } from './register.service';
 
 const Register = () => {
@@ -10,21 +11,19 @@ const Register = () => {
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<ERole>(ERole.Customer);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (error) {
-      toast.info(error, {
+      toast.error(error, {
         position: 'top-right',
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: 'dark'
       });
     }
@@ -56,11 +55,27 @@ const Register = () => {
       return;
     }
 
+    // Display name validation
+    if (!displayName.trim()) {
+      setError('Display name is required');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const request: IRegisterRequest = { email, password, role, displayName };
+      const request: IRegisterRequest = {
+        email,
+        password,
+        role: ERole.Customer,
+        displayName
+      };
       const response = await register(request);
 
       if (response.success) {
+        toast.success('Registration successful! Please log in.', {
+          position: 'top-right',
+          theme: 'dark'
+        });
         navigate('/login');
       } else {
         setError(response.errors?.join(', ') ?? 'Registration failed');
@@ -73,72 +88,85 @@ const Register = () => {
   };
 
   return (
-    <div className='register-container'>
-      <h4>Register</h4>
-      {error && <div className='error'>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className='form-field'>
-          <input
-            id='email'
-            type='email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder='Enter your email'
-            required
-          />
+    <Layout>
+      <div className='register-container'>
+        <h4>Create Your Account</h4>
+        {error && <div className='error'>{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className='form-field'>
+            <div className='input-wrapper'>
+              <input
+                id='email'
+                type='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder='Email'
+                required
+              />
+              <label htmlFor='email'>Email</label>
+            </div>
+          </div>
+          <div className='form-field'>
+            <div className='input-wrapper'>
+              <input
+                id='displayName'
+                type='text'
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder='Display Name'
+                required
+              />
+              <label htmlFor='displayName'>Display Name</label>
+            </div>
+          </div>
+          <div className='form-field'>
+            <div className='input-wrapper'>
+              <input
+                id='password'
+                type='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder='Password'
+                required
+              />
+              <label htmlFor='password'>Password</label>
+            </div>
+          </div>
+          <div className='form-field'>
+            <div className='input-wrapper'>
+              <input
+                id='confirmPassword'
+                type='password'
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder='Confirm Password'
+                required
+              />
+              <label htmlFor='confirmPassword'>Confirm Password</label>
+            </div>
+          </div>
+          <div className='form-field'>
+            <button type='submit' disabled={loading}>
+              {loading ? (
+                <>
+                  <span className='spinner' /> Registering...
+                </>
+              ) : (
+                'Register'
+              )}
+            </button>
+          </div>
+        </form>
+        <div className='link-container'>
+          <p>
+            Already have an account?{' '}
+            <a href='/login' className='login-link'>
+              Log in
+            </a>
+          </p>
         </div>
-        <div className='form-field'>
-          <input
-            id='displayName'
-            type='text'
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder='Enter your display name'
-            required
-          />
-        </div>
-        <div className='form-field'>
-          <input
-            id='password'
-            type='password'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder='Enter your password'
-            required
-          />
-        </div>
-        <div className='form-field'>
-          <input
-            id='confirmPassword'
-            type='password'
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder='Confirm your password'
-            required
-          />
-        </div>
-        <div className='form-field'>
-          <select
-            id='role'
-            value={role}
-            onChange={(e) => setRole(e.target.value as ERole)}
-          >
-            <option value={ERole.Customer}>Customer</option>
-            <option value={ERole.Barista}>Barista</option>
-          </select>
-        </div>
-        <div className='form-field'>
-          <button type='submit' disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
-          </button>
-        </div>
-      </form>
-      <div className='link-container'>
-        <p>
-          Already have an account? <a href='/login'>Log in</a>
-        </p>
       </div>
-    </div>
+    </Layout>
   );
 };
 

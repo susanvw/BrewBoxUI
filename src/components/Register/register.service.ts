@@ -1,14 +1,13 @@
-import type { AxiosError } from "axios";
-import { api, type ApiError } from "../../services/api";
-import type { IRegisterRequest, IRegisterResponse } from "./account.type";
-
+import type { AxiosError } from 'axios';
+import { api, type ApiError } from '../../services/api';
+import type { IRegisterRequest, IRegisterResponse } from './account.type';
 
 export const register = async (
   request: IRegisterRequest
 ): Promise<IRegisterResponse> => {
   try {
     const response = await api.post<IRegisterResponse>(
-      '/Account/register',
+      '/api/Account/register', // Fixed endpoint to match Swagger
       request
     );
     return response.data;
