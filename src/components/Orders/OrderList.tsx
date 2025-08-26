@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { EOrderStatus, type IOrder } from './order.type';
-import { onMessageListener, requestNotificationPermission } from '../../firebase';
-import { claimOrder, getActiveOrders, getCurrentOrders, updateOrderStatus } from './order.service';
+import {
+  onMessageListener,
+  requestNotificationPermission
+} from '../../firebase';
 import { logout } from '../Login/auth.service';
+import {
+  claimOrder,
+  getActiveOrders,
+  updateOrderStatus
+} from './order.service';
+import { EOrderStatus, type IOrder } from './order.type';
 
 const OrderList = () => {
   const navigate = useNavigate();
@@ -52,9 +59,8 @@ const OrderList = () => {
           'Customer'
         ];
         setIsBarista(userRoles.includes('Barista'));
-        const newOrders = userRoles.includes('Barista')
-          ? await getCurrentOrders()
-          : await getActiveOrders();
+        const isCustomer = !userRoles.includes('Barista');
+        const newOrders = await getActiveOrders(isCustomer);
 
         console.log(newOrders);
 
@@ -154,7 +160,7 @@ const OrderList = () => {
 
   const handleMarkPaid = async (orderId: string) => {
     try {
-      await updateOrderStatus(orderId, { status: EOrderStatus.Paid});
+      await updateOrderStatus(orderId, { status: EOrderStatus.Paid });
       setOrders(
         orders.map((order) =>
           order.id === orderId ? { ...order, paid: true } : order

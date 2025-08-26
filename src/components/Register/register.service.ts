@@ -7,7 +7,7 @@ export const register = async (
 ): Promise<IRegisterResponse> => {
   try {
     const response = await api.post<IRegisterResponse>(
-      '/api/Account/register', // Fixed endpoint to match Swagger
+      '/Account/register', // Fixed endpoint to match Swagger
       request
     );
     return response.data;
